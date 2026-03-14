@@ -49,8 +49,10 @@ data_types = {
 # Valid comparison operators for WHERE / SET clauses
 OPERATORS = {'=', '>', '<', '>=', '<=', '!=', '<>', 'like', 'in', 'is', 'between', 'not'}
 
-# Column-level constraint keywords (case-insensitive tokens after name + type)
-COLUMN_CONSTRAINTS = {"not", "null", "primary", "key", "unique", "default",
+# Column-level constraint keyword tokens — used as a quick membership reference.
+# The actual multi-token parsing (NOT NULL, PRIMARY KEY, REFERENCES, etc.)
+# is handled token-by-token inside _parse_column_def.
+COLUMN_CONSTRAINTS = {"not", "null", "primary", "unique", "default",
                       "auto_increment", "check", "references", "constraint"}
 
 
@@ -160,16 +162,6 @@ def _parse_where_conditions(where_clause):
     return conditions, errors
 
 
-def _parse_references(token):
-    """
-    Parse a REFERENCES token of the form:
-      - 'references'  (keyword alone — next token(s) handled by caller)
-    Or a combined form like:
-      - 'references'  followed by  'tablename(col)'  or  'tablename'  or  'tablename'  '('col')'
-    Returns None; actual parsing is done inline in _parse_column_def.
-    """
-    pass  # logic lives in _parse_column_def
-
 
 def _parse_column_def(col_def):
     """
@@ -263,7 +255,7 @@ def _parse_column_def(col_def):
             # Case 2: table only on this token, column in next token — "orders" "(" "id" ")"
             # or "orders" "(id)"  — handle the space-split variants
             else:
-                ref_table = ref_token.rstrip("(").lower()
+                ref_table = ref_token.removesuffix("(").lower()
 
                 # Collect the parenthesised column name which may be split across tokens
                 # e.g. parts = [..., "orders", "(id)"]  or  [..., "orders", "(", "id", ")"]
