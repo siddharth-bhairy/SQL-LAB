@@ -1,0 +1,15 @@
+# Security: Hide API keys
+.env
+.env.local
+
+# Dependency folders (Git shouldn't track these)
+node_modules/
+__pycache__/
+*.pyc
+
+# Local databases
+db.sqlite3
+
+# Build folders
+dist/
+build/
